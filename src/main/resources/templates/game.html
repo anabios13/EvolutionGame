@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Evolution Game</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <meta name="_csrf" th:if="${_csrf}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf}" th:content="${_csrf.headerName}">
+</head>
+<body>
+<div class="container">
+    <header class="game-header">
+        <div class="game-info">
+            <div>Раунд: <span id="roundCounter" th:text="${game.round}">0</span></div>
+            <div>Фаза: <span id="currentPhase" th:text="${game.currentPhase}">WAITING</span></div>
+            <div>Еда: <span id="foodTokens" th:text="${game.foodTokens}">0</span></div>
+        </div>
+        <div class="player-info">
+            <span th:text="${player}"></span>
+            <button class="action-button" onclick="leaveGame()">Выйти</button>
+        </div>
+    </header>
+
+    <div class="game-board">
+        <!-- Левая колонка - оппоненты -->
+        <div id="opponents-area" class="opponents-area">
+            <div th:each="opponent : ${game.players}" th:if="${opponent.name != player}" class="player-area">
+                <div class="player-name" th:text="${opponent.name}">Opponent</div>
+                <div class="player-cards">
+                    <div th:each="animal : ${opponent.animals}" class="card">
+                        <div th:each="property : ${animal.properties}" class="card-property"
+                             th:title="${property.name}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Центральная зона -->
+        <div class="center-area">
+            <div class="deck-area">
+                <div id="deck" class="card-stack" th:text="${game.remainingCards + ' карт'}">Колода</div>
+            </div>
+            <div class="food-area">
+                <div id="food-tokens-area" class="food-tokens">
+                    <div th:each="i : ${#numbers.sequence(1, game.foodTokens)}" class="food-token"
+                         th:classappend="${i % 2 == 0 ? 'red' : 'blue'}"></div>
+                </div>
+            </div>
+            <div class="dice">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+
+        <!-- Правая колонка - карты текущего игрока -->
+        <div id="current-player-area" class="player-area current-player">
+            <div class="player-name" th:text="${player}">Player Name</div>
+            <div class="player-cards">
+                <div th:each="animal : ${currentPlayerAnimals}" class="card" th:attr="data-animal-id=${animal.id}" onclick="selectAnimal(this)">
+                    <div th:each="property : ${animal.properties}" class="card-property" th:title="${property.name}"></div>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="action-button" id="startGameButton">Старт игры</button>
+                <button class="action-button" id="endPhaseButton">Завершить фазу</button>
+            </div>
+        </div>
+    </div>
+
+    <img src="/images/lizard.svg" alt="Lizard" class="lizard-icon">
+</div>
+
+<!-- Подключаем SockJS и STOMP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script th:inline="javascript">
+    // Эти переменные должны быть подставлены сервером Thymeleaf.
+    const gameId = /*[[${gameId}]]*/ "";
+    const playerName = /*[[${player}]]*/ "";
+</script>
+<script>
+    let stompClient = null;
+
+    function connectWebSocket() {
+        const socket = new SockJS('/ws/game');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/topic/game/' + gameId, function (message) {
+                const game = JSON.parse(message.body);
+                updateUI(game);
+            });
+        });
+    }
+
+    function updateUI(game) {
+        document.getElementById('roundCounter').textContent = game.round;
+        document.getElementById('currentPhase').textContent = game.currentPhase;
+        document.getElementById('foodTokens').textContent = game.foodTokens;
+        document.getElementById('deck').textContent = game.remainingCards + ' карт';
+
+        // Обновляем блок фишек еды
+        const foodTokensArea = document.getElementById('food-tokens-area');
+        foodTokensArea.innerHTML = '';
+        for (let i = 1; i <= game.foodTokens; i++) {
+            const token = document.createElement('div');
+            token.className = 'food-token ' + (i % 2 === 0 ? 'red' : 'blue');
+            foodTokensArea.appendChild(token);
+        }
+
+        // Если нужно, можно обновить также область с картами оппонентов и текущего игрока.
+    }
+
+    function selectAnimal(cardElement) {
+        document.querySelectorAll('.card').forEach(card => card.classList.remove('selected'));
+        cardElement.classList.add('selected');
+    }
+
+    document.getElementById('startGameButton').addEventListener('click', function () {
+        fetch('/api/games/' + gameId + '/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then(response => response.json())
+            .then(data => console.log('Game started:', data))
+            .catch(error => console.error('Error:', error));
+    });
+
+    document.getElementById('endPhaseButton').addEventListener('click', function () {
+        fetch('/api/games/' + gameId + '/end-phase', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then(response => response.json())
+            .then(data => console.log('Phase ended:', data))
+            .catch(error => console.error('Error:', error));
+    });
+
+    function leaveGame() {
+        if (confirm('Вы уверены, что хотите покинуть игру?')) {
+            window.location.href = '/';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        connectWebSocket();
+    });
+</script>
+</body>
+</html>

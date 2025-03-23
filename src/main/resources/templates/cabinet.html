@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Evolution - Cabinet</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+
+<body>
+    <h1>Welcome, <span th:text="${player}"></span></h1>
+
+    <!-- Блок управления игрой -->
+    <div class="game-controls">
+        <button id="createGameButton" onclick="createGame()">Create Game</button>
+        <input id="gameIdInput" type="text" placeholder="Game ID">
+        <button id="joinGameButton" onclick="joinGame()">Join Game</button>
+        <button id="startGameButton" onclick="startGame()">Start Game</button>
+    </div>
+
+    <div id="gameState"></div>
+
+    <script>
+        // Пример функций для вызова REST API
+        function createGame() {
+            fetch('/api/games', { method: 'POST' })
+                .then(response => response.json())
+                .then(game => {
+                    document.getElementById("gameIdInput").value = game.id;
+                    alert("Game created: " + game.id);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function joinGame() {
+            const gameId = document.getElementById("gameIdInput").value;
+            fetch('/api/games/' + gameId + '/join', { method: 'POST' })
+                .then(response => response.json())
+                .then(game => {
+                    alert("Joined game: " + game.id);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function startGame() {
+            const gameId = document.getElementById("gameIdInput").value;
+            fetch('/api/games/' + gameId + '/start', { method: 'POST' })
+                .then(response => response.json())
+                .then(game => {
+                    alert("Game started: " + game.id);
+                    // Перейти на страницу игры
+                    window.location.href = '/game/' + game.id;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+
+    <a href="/signOut">Sign Out</a>
+</body>
+
+</html>

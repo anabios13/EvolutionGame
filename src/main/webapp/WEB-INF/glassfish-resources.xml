@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE resources PUBLIC "-//GlassFish.org//DTD GlassFish Application Server 3.1 Resource Definitions//EN" "http://glassfish.org/dtds/glassfish-resources_1_5.dtd">
+
+<resources>
+    <jdbc-connection-pool name="PostgresPool"
+                          res-type="javax.sql.DataSource"
+                          datasource-classname="org.postgresql.ds.PGSimpleDataSource"
+                          ping="true">
+        <property name="user" value="postgres"/>
+        <property name="password" value="12345"/>
+        <property name="URL" value="jdbc:postgresql://localhost:5432/evolution_db"/>
+        <property name="driverClass" value="org.postgresql.Driver"/>
+    </jdbc-connection-pool>
+
+    <jdbc-resource pool-name="PostgresPool" jndi-name="jdbc/h2test"/>
+</resources>

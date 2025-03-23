@@ -1,0 +1,307 @@
+/* Общие стили */
+:root {
+    --primary-color: #4a6741;
+    --secondary-color: #8ba888;
+    --background-color: #f5f5f5;
+    --card-color: #ffffff;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: var(--background-color);
+}
+
+.container {
+    width: 100%;
+    min-height: 100vh;
+}
+
+/* Верхняя панель */
+.game-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.game-info {
+    display: flex;
+    gap: 20px;
+}
+
+/* Игровое поле */
+.game-board {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 20px;
+    padding: 20px;
+    height: calc(100vh - 100px);
+}
+
+/* Стили для карт */
+.card {
+    width: 120px;
+    height: 180px;
+    background-color: var(--card-color);
+    border: 2px solid var(--primary-color);
+    border-radius: 10px;
+    position: relative;
+    margin: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-property {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 30px;
+    height: 30px;
+    background-color: var(--secondary-color);
+    border-radius: 50%;
+}
+
+/* Зона игрока */
+.player-area {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.player-name {
+    color: var(--primary-color);
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.player-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Центральная зона */
+.center-area {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Токены еды */
+.food-token {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin: 5px;
+}
+
+.food-token.red {
+    background-color: #e74c3c;
+}
+
+.food-token.blue {
+    background-color: #3498db;
+}
+
+/* Зона противников */
+.opponents-area {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Кубик */
+.dice {
+    width: 60px;
+    height: 60px;
+    background-color: white;
+    border: 2px solid var(--primary-color);
+    border-radius: 10px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    padding: 5px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    margin: auto;
+}
+
+/* Анимации */
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: scale(1.05);
+    cursor: pointer;
+}
+
+/* Кнопки действий */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.action-button {
+    padding: 8px 16px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.action-button:disabled {
+    background-color: var(--secondary-color);
+    cursor: not-allowed;
+}
+
+/* Иконка ящерицы */
+.lizard-icon {
+    width: 100px;
+    height: auto;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    opacity: 0.5;
+}
+
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f0f0f0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Header Styles */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+h1 {
+    margin: 0;
+    color: #333;
+}
+
+/* Form Styles */
+.auth-form {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.button {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #dc3545;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: #c82333;
+}
+
+/* Game Controls */
+.game-controls {
+    margin-bottom: 20px;
+}
+
+.game-controls button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.game-controls button:hover {
+    background-color: #0056b3;
+}
+
+.join-game {
+    margin-top: 10px;
+}
+
+.join-game input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+/* Error Messages */
+.error-message {
+    color: #f44336;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #ffebee;
+    border-radius: 4px;
+}
+
+.success-message {
+    color: #ffffff;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #d0c8f6;
+    border-radius: 4px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .game-board {
+        grid-template-columns: 1fr;
+    }
+
+    .container {
+        padding: 10px;
+    }
+}

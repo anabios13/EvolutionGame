@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="../js/builders.js"></script>
+    <script src="../js/websocket.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <style type="text/css"></style>
+</head>
+<body>
+
+<div id="wrapper">
+    You are: <span id="player"></span><br/>
+    Active players: <span id="players"></span><br/>
+
+    Game ID:<span id="gameId"></span> Phase: <span id="phase"></span><span id="last"
+                                                                           style="display: none">Last round</span><br>
+    <b>Your status: </b><span id="status"></span><br>
+    <div id="feedPanel">
+        <span>food: </span>
+        <div id="food" onclick="eatFood()"></div>
+    </div>
+    <div id="movePanel">
+        <div class="doing"><span>Your move: </span><span id="doing"></span></div>
+        <button id="Clear" onclick="clearMove()">Clear</button>
+        <button id="Make move" onclick="makeMove()">Make move</button>
+        <button id="End move" onclick="endMove()">End move</button>
+        <button onclick="endPhase()">End Phase</button>
+    </div>
+
+    <div id="common"></div>
+    <hr>
+
+    Your cards:
+    <div id="personal"></div>
+    <hr>
+</div>
+<div id="log">Game log:<br/></div>
+<br/>
+
+<button onclick="saveGame()">Save game</button>
+<form action="/evo/leave">
+    <input type="submit" value="Leave game"/>
+</form>
+
+</body>
+
+</html>

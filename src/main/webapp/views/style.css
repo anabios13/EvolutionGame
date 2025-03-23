@@ -1,0 +1,113 @@
+.card {
+    width: 90px;
+    height: 100px;
+    margin: 10px;
+    padding: 3px;
+    background-color: forestgreen;
+    vertical-align: top;
+    border: solid 1px black;
+    border-radius: 8px;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+    display: inline-block;
+    font-size: 12px;
+}
+
+.card span {
+    display: block;
+}
+
+.card button {
+    font-size: 12px;
+    width: 96%;
+    margin: 3px auto auto;
+}
+
+.animal {
+    width: 100px;
+    height: 130px;
+    margin: 15px;
+    padding: 6px;
+    background-color: burlywood;
+    vertical-align: top;
+    position: relative;
+    border: solid 1px black;
+    border-radius: 8px;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+    display: inline-block;
+    font-size: 12px;
+}
+
+.active:hover {
+    box-shadow: 0 0 3px 2px green;
+}
+
+.active:active {
+    box-shadow: 0 0 0 3px red;
+}
+
+.animal span {
+    display: block;
+}
+
+.food {
+    padding: 5px;
+}
+
+.fat {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 5px;
+}
+
+img {
+    padding: 3px;
+}
+
+.property {
+    width: 75px;
+    height: 12px;
+    background-color: chocolate;
+    vertical-align: top;
+    font-size: 12px;
+    border: solid 1px black;
+    margin: 3px;
+    position: relative;
+}
+
+#feedPanel {
+    background-color: darkgray;
+    margin: 5px;
+    padding: 5px;
+    text-align: center;
+}
+
+#movePanel {
+    background-color: darkseagreen;
+    margin: 5px;
+    padding: 5px;
+    text-align: center;
+}
+
+#last {
+    color: red;
+}
+
+#log {
+    width: 800px;
+    height: 100px;
+    overflow: auto;
+    border: solid 1px gray;
+}
+
+.doing {
+    width: 50%;
+    margin: auto;
+    margin-bottom: 5px;
+    padding: 5px;
+    border: solid 1px black;
+    text-align: left;
+    background-color: white;
+}
