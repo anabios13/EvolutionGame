@@ -1,11 +1,16 @@
-/* Общие стили */
+/* Root variables */
 :root {
     --primary-color: #4a6741;
     --secondary-color: #8ba888;
     --background-color: #f5f5f5;
     --card-color: #ffffff;
+    --error-color: #dc3545;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
 }
 
+/* General styles */
 body {
     margin: 0;
     padding: 0;
@@ -18,7 +23,7 @@ body {
     min-height: 100vh;
 }
 
-/* Верхняя панель */
+/* Game header */
 .game-header {
     background-color: var(--primary-color);
     color: white;
@@ -33,16 +38,16 @@ body {
     gap: 20px;
 }
 
-/* Игровое поле */
+/* Game board */
 .game-board {
     display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
+    /*grid-template-columns: 1fr 2fr 1fr;*/
     gap: 20px;
     padding: 20px;
     height: calc(100vh - 100px);
 }
 
-/* Стили для карт */
+/* Card styles */
 .card {
     width: 120px;
     height: 180px;
@@ -52,68 +57,147 @@ body {
     position: relative;
     margin: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.card.selected {
+    border-color: var(--success-color);
+    transform: scale(1.05);
+}
+
+.card.target-selected {
+    border-color: var(--warning-color);
+    transform: scale(1.05);
 }
 
 .card-property {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    width: 30px;
-    height: 30px;
+    padding: 5px;
+    margin: 2px;
     background-color: var(--secondary-color);
-    border-radius: 50%;
+    border-radius: 5px;
+    font-size: 12px;
+    color: white;
 }
 
-/* Зона игрока */
+.animal-card {
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.food-count,
+.fat-reserve {
+    font-size: 12px;
+    color: var(--primary-color);
+}
+
+.card-info {
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.card-type {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.card-points {
+    color: var(--info-color);
+}
+
+/* Player area */
 .player-area {
     background-color: rgba(255, 255, 255, 0.8);
     border-radius: 10px;
     padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
 .player-name {
     color: var(--primary-color);
     font-weight: bold;
-    margin-bottom: 10px;
 }
 
-.player-cards {
+.player-cards,
+.hand-cards {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+    min-height: 200px;
 }
 
-/* Центральная зона */
+/* Center area */
 .center-area {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    align-items: center;
 }
 
-/* Токены еды */
+.deck-area {
+    display: flex;
+    justify-content: center;
+}
+
+.card-stack {
+    width: 120px;
+    height: 180px;
+    background-color: var(--primary-color);
+    border-radius: 10px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* Food tokens */
+.food-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    padding: 20px;
+}
+
+.food-tokens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: center;
+}
+
 .food-token {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     margin: 5px;
+    transition: transform 0.2s;
+}
+
+.food-token:hover {
+    transform: scale(1.1);
+    cursor: pointer;
 }
 
 .food-token.red {
-    background-color: #e74c3c;
+    background-color: var(--error-color);
 }
 
 .food-token.blue {
-    background-color: #3498db;
+    background-color: var(--info-color);
 }
 
-/* Зона противников */
-.opponents-area {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+.food-token.yellow {
+    background-color: var(--warning-color);
 }
 
-/* Кубик */
+/* Dice */
 .dice {
     width: 60px;
     height: 60px;
@@ -124,6 +208,12 @@ body {
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
     padding: 5px;
+    transition: transform 0.2s;
+}
+
+.dice:hover {
+    transform: rotate(360deg);
+    cursor: pointer;
 }
 
 .dot {
@@ -134,19 +224,10 @@ body {
     margin: auto;
 }
 
-/* Анимации */
-.card {
-    transition: transform 0.2s;
-}
-
-.card:hover {
-    transform: scale(1.05);
-    cursor: pointer;
-}
-
-/* Кнопки действий */
+/* Action buttons */
 .action-buttons {
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
     margin-top: 10px;
 }
@@ -158,14 +239,176 @@ body {
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.action-button:hover:not(:disabled) {
+    transform: translateY(-2px);
 }
 
 .action-button:disabled {
     background-color: var(--secondary-color);
     cursor: not-allowed;
+    opacity: 0.7;
 }
 
-/* Иконка ящерицы */
+/* Property effects */
+.card[data-property="WATERFOWL"] {
+    background-color: #e3f2fd;
+}
+
+.card[data-property="FAST"] {
+    background-color: #fff3e0;
+}
+
+.card[data-property="MIMICRY"] {
+    background-color: #f3e5f5;
+}
+
+.card[data-property="BIG"] {
+    background-color: #e8f5e9;
+}
+
+.card[data-property="STOMPER"] {
+    background-color: #fbe9e7;
+}
+
+.card[data-property="POISONOUS"] {
+    background-color: #e0f2f1;
+}
+
+.card[data-property="TAIL_DROP"] {
+    background-color: #fff8e1;
+}
+
+.card[data-property="INTERACTION"] {
+    background-color: #f3e5f5;
+}
+
+.card[data-property="HIBERNATION"] {
+    background-color: #e8eaf6;
+}
+
+.card[data-property="SCAVENGER"] {
+    background-color: #fce4ec;
+}
+
+.card[data-property="SYMBIOSIS"] {
+    background-color: #f1f8e9;
+}
+
+.card[data-property="PIRACY"] {
+    background-color: #ffebee;
+}
+
+.card[data-property="COOPERATION"] {
+    background-color: #e1f5fe;
+}
+
+.card[data-property="BURROWING"] {
+    background-color: #fff3e0;
+}
+
+.card[data-property="CAMOUFLAGE"] {
+    background-color: #f1f8e9;
+}
+
+.card[data-property="SHARP_VISION"] {
+    background-color: #e8eaf6;
+}
+
+.card[data-property="PARASITE"] {
+    background-color: #fbe9e7;
+}
+
+.card[data-property="FAT_RESERVE"] {
+    background-color: #fff8e1;
+}
+
+.card[data-property="PREDATOR"] {
+    background-color: #ffebee;
+}
+
+/* Animations */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.card.can-attack {
+    animation: pulse 1s infinite;
+}
+
+@keyframes shake {
+    0% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+.card.under-attack {
+    animation: shake 0.5s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.card.new-card {
+    animation: fadeIn 0.5s;
+}
+
+/* Responsive design */
+
+    .game-board {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+    }
+
+
+/*@media (max-width: 768px) {*/
+/*    .game-info {*/
+/*        flex-direction: column;*/
+/*        gap: 10px;*/
+/*    }*/
+
+/*    .action-buttons {*/
+/*        flex-direction: column;*/
+/*    }*/
+
+/*    .card {*/
+/*        width: 100px;*/
+/*        height: 150px;*/
+/*    }*/
+/*}*/
+
+/* Lizard icon */
 .lizard-icon {
     width: 100px;
     height: auto;
@@ -184,10 +427,10 @@ body {
 }
 
 .container {
-    max-width: 800px;
+    /*max-width: 800px;*/
     margin: 0 auto;
     background-color: #fff;
-    padding: 20px;
+    /*padding: 20px;*/
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -233,19 +476,9 @@ h1 {
     border-radius: 4px;
 }
 
-.button {
-    display: inline-block;
-    padding: 8px 16px;
-    background-color: #dc3545;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
-    border: none;
+.lizard-icon:hover {
+    opacity: 1;
     cursor: pointer;
-}
-
-.button:hover {
-    background-color: #c82333;
 }
 
 /* Game Controls */
@@ -295,13 +528,101 @@ h1 {
     border-radius: 4px;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .game-board {
-        grid-template-columns: 1fr;
-    }
+/* Стили для области размещения карт на столе */
+.table-area {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    text-align: center;
+}
 
-    .container {
-        padding: 10px;
-    }
+.table-instructions {
+    margin-bottom: 10px;
+    color: #666;
+    font-style: italic;
+}
+
+.table-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.table-buttons .action-button {
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.table-buttons .action-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.table-buttons .action-button:hover:not(:disabled) {
+    background-color: #45a049;
+}
+
+.card-description {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+.hand-card {
+    background-color: white;
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    min-width: 150px;
+    max-width: 200px;
+}
+
+.hand-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.hand-card.selected {
+    border-color: var(--success-color);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+}
+
+.animal-card {
+    background-color: white;
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    min-width: 150px;
+    max-width: 200px;
+}
+
+.animal-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.animal-card.selected {
+    border-color: var(--success-color);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+}
+
+.animal-card.target-selected {
+    border-color: var(--warning-color);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
 }

@@ -1,14 +1,15 @@
 package com.company.mod.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 @Data
 @Entity
@@ -18,59 +19,99 @@ public class Animal {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @Column(nullable = false)
+    private String name;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "player_id")
     @JsonBackReference
     private Player player;
 
-    @ManyToOne
-    @JoinColumn(name = "game_id")
-    @JsonIgnore
-    private Game game;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "card_id")
+    @JsonManagedReference
+    private Card card;
 
-    @ElementCollection
-    @CollectionTable(name = "animal_properties")
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "animal_properties", joinColumns = @JoinColumn(name = "animal_id"), inverseJoinColumns = @JoinColumn(name = "card_id"))
+    @JsonManagedReference
+    @Fetch(FetchMode.SUBSELECT)
+    @BatchSize(size = 20)
     private List<Card> properties = new ArrayList<>();
 
-    @Column(nullable = false, columnDefinition = "boolean default true")
-    private boolean active = true;
-
-    @Column(nullable = false, columnDefinition = "boolean default false")
-    private boolean isFed = false;
-
-    @Column(nullable = false, columnDefinition = "integer default 0", name = "food_count")
+    @Column(nullable = false)
     private int foodCount = 0;
 
-    @Column(nullable = false, columnDefinition = "integer default 0")
-    private int fatReserve = 0;
+    @Column(nullable = false)
+    private int requiredFood = 1;
 
-    @Column(nullable = false, columnDefinition = "boolean default false")
+    @Column(nullable = false)
+    private boolean isFed = false;
+
+    @Column(name = "active", nullable = false)
+    private boolean isActive = true;
+
+    @Column(nullable = false)
     private boolean isHibernating = false;
 
-    @Column(nullable = false, columnDefinition = "boolean default true")
+    @Column(nullable = false)
     private boolean canBeAttacked = true;
 
-    @Column(nullable = false, columnDefinition = "integer default 1", name = "max_food_count")
-    private int maxFoodCount = 1;
+    @Column(nullable = true)
+    private boolean hasUsedFatReserve = false;
 
-    public Animal() {
-        this.active = true;
-        this.isFed = false;
-        this.foodCount = 0;
-        this.fatReserve = 0;
-        this.isHibernating = false;
-        this.canBeAttacked = true;
-        this.maxFoodCount = 1;
+    @Column(nullable = true)
+    private boolean hasUsedMimicry = false;
+
+    @Column(nullable = true)
+    private boolean hasUsedTailDrop = false;
+
+    @Column(nullable = true)
+    private boolean hasUsedPiracy = false;
+
+    @Column(nullable = true)
+    private boolean hasUsedSymbiosis = false;
+
+    @Column(nullable = true)
+    private boolean hasUsedCooperation = false;
+
+    @Column(nullable = true)
+    private boolean hasUsedInteraction = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "last_attacked_animal_id")
+    private Animal lastAttackedAnimal;
+
+    public Animal getLastAttackedAnimal() {
+        return lastAttackedAnimal;
     }
 
-    public void addProperty(Card property) {
-        if (!hasProperty(property.getProperty())) {
-            properties.add(property);
+    public void setLastAttackedAnimal(Animal lastAttackedAnimal) {
+        this.lastAttackedAnimal = lastAttackedAnimal;
+    }
+
+    public void deactivate() {
+        this.isActive = false;
+    }
+
+    public void activate() {
+        this.isActive = true;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void addProperty(Card card) {
+        if (!properties.contains(card)) {
+            properties.add(card);
+            updateRequiredFood();
         }
     }
 
-    public void removeProperty(Card property) {
-        properties.remove(property);
+    public void removeProperty(Card card) {
+        properties.remove(card);
+        updateRequiredFood();
     }
 
     public boolean hasProperty(Card.CardProperty property) {
@@ -80,117 +121,169 @@ public class Animal {
 
     public void feed() {
         if (!isHibernating) {
-            isFed = true;
             foodCount++;
-        }
-    }
-
-    public void addFatReserve() {
-        if (isFed && hasProperty(Card.CardProperty.FAT_RESERVE)) {
-            fatReserve++;
-        }
-    }
-
-    public void useFatReserve() {
-        if (fatReserve > 0) {
-            fatReserve--;
-            foodCount++;
+            if (foodCount >= requiredFood) {
+                isFed = true;
+            }
         }
     }
 
     public void hibernate() {
-        if (!isHibernating) {
+        if (hasProperty(Card.CardProperty.HIBERNATION) && !isHibernating) {
             isHibernating = true;
             isFed = true;
         }
     }
 
-    public void wakeUp() {
-        isHibernating = false;
+    public void useFatReserve() {
+        if (hasProperty(Card.CardProperty.FAT_RESERVE) && !hasUsedFatReserve) {
+            hasUsedFatReserve = true;
+            feed();
+        }
     }
 
-    public boolean canBeAttackedBy(Animal attacker) {
-        if (!active) {
-            return false;
+    public void useMimicry(Animal newTarget) {
+        if (hasProperty(Card.CardProperty.MIMICRY) && !hasUsedMimicry) {
+            hasUsedMimicry = true;
+            // Логика перенаправления атаки будет реализована в GameService
         }
-        if (hasProperty(Card.CardProperty.WATERFOWL) &&
-                !attacker.hasProperty(Card.CardProperty.WATERFOWL)) {
-            return false;
-        }
-        if (hasProperty(Card.CardProperty.BIG) &&
-                !attacker.hasProperty(Card.CardProperty.BIG)) {
-            return false;
-        }
-        if (hasProperty(Card.CardProperty.CAMOUFLAGE) &&
-                !attacker.hasProperty(Card.CardProperty.SHARP_VISION)) {
-            return false;
-        }
-        if (hasProperty(Card.CardProperty.BURROWING) && isFed) {
-            return false;
-        }
-        return true;
     }
 
-    public boolean canAttack(Animal target) {
-        if (!active || !hasProperty(Card.CardProperty.PREDATOR)) {
-            return false;
+    public void useTailDrop() {
+        if (hasProperty(Card.CardProperty.TAIL_DROP) && !hasUsedTailDrop) {
+            hasUsedTailDrop = true;
+            // Логика отбрасывания свойства будет реализована в GameService
         }
-        if (isFed && fatReserve == 0) {
-            return false;
+    }
+
+    public void usePiracy(Animal target) {
+        if (hasProperty(Card.CardProperty.PIRACY) && !hasUsedPiracy) {
+            hasUsedPiracy = true;
+            if (!target.isFed()) {
+                target.setFoodCount(target.getFoodCount() - 1);
+                feed();
+            }
         }
-        return target.canBeAttackedBy(this);
+    }
+
+    public void useSymbiosis(Animal symbiot) {
+        if (hasProperty(Card.CardProperty.SYMBIOSIS) && !hasUsedSymbiosis) {
+            hasUsedSymbiosis = true;
+            setCanBeAttacked(false);
+            symbiot.setCanBeAttacked(false);
+        }
+    }
+
+    public void useCooperation(Animal partner) {
+        if (hasProperty(Card.CardProperty.COOPERATION) && !hasUsedCooperation) {
+            hasUsedCooperation = true;
+            if (isFed() && !partner.isFed()) {
+                partner.feed();
+            }
+        }
+    }
+
+    public void useInteraction(Animal partner) {
+        if (hasProperty(Card.CardProperty.INTERACTION) && !hasUsedInteraction) {
+            hasUsedInteraction = true;
+            if (isFed() && !partner.isFed()) {
+                partner.feed();
+            }
+        }
+    }
+
+    public Animal reproduce() {
+        Animal offspring = new Animal();
+        offspring.setPlayer(player);
+        offspring.setRequiredFood(requiredFood);
+        // Копируем свойства родителя
+        for (Card property : properties) {
+            offspring.addProperty(property);
+        }
+        return offspring;
     }
 
     public void attack(Animal target) {
-        if (canAttack(target)) {
-            target.setCanBeAttacked(false);
-            foodCount += 2;
-            isFed = true;
+        if (hasProperty(Card.CardProperty.PREDATOR)) {
+            if (target.canBeAttacked) {
+                target.setLastAttackedAnimal(this);
+                target.setCanBeAttacked(false);
+                // Хищник получает 2 синие фишки еды
+                foodCount += 2;
+                isFed = true;
+            }
         }
     }
 
     public void defend() {
         if (hasProperty(Card.CardProperty.FAST)) {
-            Random random = new Random();
-            if (random.nextInt(6) + 1 >= 4) {
-                canBeAttacked = false;
+            // Логика защиты будет реализована в GameService
+        }
+    }
+
+    public boolean canAttack(Animal target) {
+        if (!hasProperty(Card.CardProperty.PREDATOR)) {
+            return false;
+        }
+
+        // Проверяем специальные условия атаки
+        if (target.hasProperty(Card.CardProperty.WATERFOWL) && !hasProperty(Card.CardProperty.WATERFOWL)) {
+            return false;
+        }
+
+        if (target.hasProperty(Card.CardProperty.BIG) && !hasProperty(Card.CardProperty.BIG)) {
+            return false;
+        }
+
+        if (target.hasProperty(Card.CardProperty.CAMOUFLAGE) && !hasProperty(Card.CardProperty.SHARP_VISION)) {
+            return false;
+        }
+
+        if (target.hasProperty(Card.CardProperty.BURROWING) && target.isFed()) {
+            return false;
+        }
+
+        return target.isCanBeAttacked();
+    }
+
+    private void updateRequiredFood() {
+        requiredFood = 1;
+        for (Card property : properties) {
+            if (property.getProperty() == Card.CardProperty.PREDATOR ||
+                    property.getProperty() == Card.CardProperty.BIG) {
+                requiredFood++;
             }
         }
     }
 
-    public void useMimicry(Animal newTarget) {
-        if (hasProperty(Card.CardProperty.MIMICRY)) {
-            newTarget.setCanBeAttacked(true);
+    public void resetPhaseState() {
+        isHibernating = false;
+        hasUsedFatReserve = false;
+        hasUsedMimicry = false;
+        hasUsedTailDrop = false;
+        hasUsedPiracy = false;
+        hasUsedSymbiosis = false;
+        hasUsedCooperation = false;
+        hasUsedInteraction = false;
+    }
+
+    public Card getCard() {
+        return card;
+    }
+
+    public void setCard(Card card) {
+        this.card = card;
+        if (card != null) {
+            this.requiredFood = card.getType() == Card.CardType.ANIMAL ? 1 : 0;
+            this.name = card.getType() == Card.CardType.ANIMAL ? "Animal" : "Property";
         }
     }
 
-    public void useTailDrop() {
-        if (hasProperty(Card.CardProperty.TAIL_DROP)) {
-            properties.remove(0); // Remove first property
-            isFed = true;
-            foodCount++;
-        }
+    public String getName() {
+        return name;
     }
 
-    public void deactivate() {
-        this.active = false;
-    }
-
-    public void activate() {
-        this.active = true;
-    }
-
-    public Animal reproduce() {
-        if (!isFed) {
-            throw new RuntimeException("Animal must be fed to reproduce");
-        }
-
-        Animal offspring = new Animal();
-        offspring.setGame(this.game);
-        offspring.setPlayer(this.player);
-        offspring.setFoodCount(1);
-        offspring.setProperties(new ArrayList<>(this.properties));
-
-        return offspring;
+    public void setName(String name) {
+        this.name = name;
     }
 }

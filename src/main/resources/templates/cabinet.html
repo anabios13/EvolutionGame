@@ -45,6 +45,7 @@
 
         function startGame() {
             const gameId = document.getElementById("gameIdInput").value;
+            console.log("gameId " + gameId);
             fetch('/api/games/' + gameId + '/start', { method: 'POST' })
                 .then(response => response.json())
                 .then(game => {
@@ -53,6 +54,7 @@
                     window.location.href = '/game/' + game.id;
                 })
                 .catch(error => console.error('Error:', error));
+            console.log("gameId " + '/api/games/' + gameId + '/start');
         }
     </script>
 

@@ -36,8 +36,8 @@ public class GameController {
 
     @PostMapping("/{gameId}/move")
     public ResponseEntity<Game> makeMove(@PathVariable String gameId,
-                                         @RequestBody Map<String, Object> moveData,
-                                         Authentication authentication) {
+            @RequestBody Map<String, Object> moveData,
+            Authentication authentication) {
         Game game = gameService.makeMove(gameId, authentication.getName(), moveData);
         return ResponseEntity.ok(game);
     }

@@ -1,152 +1,150 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Evolution Game</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <meta name="_csrf" th:if="${_csrf}" th:content="${_csrf.token}">
-    <meta name="_csrf_header" th:if="${_csrf}" th:content="${_csrf.headerName}">
-</head>
-<body>
-<div class="container">
-    <header class="game-header">
-        <div class="game-info">
-            <div>Раунд: <span id="roundCounter" th:text="${game.round}">0</span></div>
-            <div>Фаза: <span id="currentPhase" th:text="${game.currentPhase}">WAITING</span></div>
-            <div>Еда: <span id="foodTokens" th:text="${game.foodTokens}">0</span></div>
-        </div>
-        <div class="player-info">
-            <span th:text="${player}"></span>
-            <button class="action-button" onclick="leaveGame()">Выйти</button>
-        </div>
-    </header>
 
-    <div class="game-board">
-        <!-- Левая колонка - оппоненты -->
-        <div id="opponents-area" class="opponents-area">
-            <div th:each="opponent : ${game.players}" th:if="${opponent.name != player}" class="player-area">
-                <div class="player-name" th:text="${opponent.name}">Opponent</div>
-                <div class="player-cards">
-                    <div th:each="animal : ${opponent.animals}" class="card">
-                        <div th:each="property : ${animal.properties}" class="card-property"
-                             th:title="${property.name}"></div>
+<head>
+    <meta charset="UTF-8" />
+    <title>Evolution Game</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <!-- CSRF для запросов -->
+    <meta name="_csrf" th:if="${_csrf}" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:if="${_csrf}" th:content="${_csrf.headerName}" />
+</head>
+
+<body>
+    <div class="container">
+        <header class="game-header">
+            <div class="game-info">
+                <div>Round: <span id="roundCounter" th:text="${game.round}">0</span></div>
+                <div>Phase: <span id="currentPhase" th:text="${game.currentPhase}">WAITING</span></div>
+                <div>Food: <span id="foodTokens" th:text="${game.foodTokens}">0</span></div>
+<!--                <div>Blue Food: <span id="blueFoodTokens" th:text="${game.blueFoodTokens}">0</span></div>-->
+<!--                <div>Yellow Food: <span id="yellowFoodTokens" th:text="${game.yellowFoodTokens}">0</span></div>-->
+                <div>Deck: <span id="boardDeck" th:text="${game.remainingCards + ' cards'}">Deck</span></div>
+            </div>
+            <div class="player-info">
+                <span th:text="${player}"></span>
+                <button class="action-button" onclick="leaveGame()">Leave Game</button>
+            </div>
+        </header>
+
+        <div class="game-board">
+            <!-- Оппоненты -->
+            <div id="opponents-area" class="opponents-area">
+                <div th:each="opponent : ${game.players}" th:if="${opponent.name != player}" class="player-area">
+                    <div class="player-name" th:text="${opponent.name}">Opponent</div>
+                    <div class="player-cards">
+                        <div th:each="animal : ${opponent.animals}" class="animal-card"
+                            th:attr="data-animal-id=${animal.id}" onclick="selectTargetAnimal(this)">
+                            <div class="animal-info">
+                                <div class="food-count">Food: <span th:text="${animal.foodCount}">0</span></div>
+                                <div class="fat-reserve" th:if="${animal.hasUsedFatReserve}">Fat Reserve Used</div>
+                            </div>
+                            <div th:each="property : ${animal.properties}" class="card-property"
+                                th:title="${property.description}" th:text="${property.property}"></div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Центральная зона -->
-        <div class="center-area">
-            <div class="deck-area">
-                <div id="deck" class="card-stack" th:text="${game.remainingCards + ' карт'}">Колода</div>
-            </div>
-            <div class="food-area">
-                <div id="food-tokens-area" class="food-tokens">
-                    <div th:each="i : ${#numbers.sequence(1, game.foodTokens)}" class="food-token"
-                         th:classappend="${i % 2 == 0 ? 'red' : 'blue'}"></div>
+            <!-- Центр: колода и фишки еды -->
+            <div class="center-area">
+                <div class="deck-area">
+                    <div id="deck" class="card-stack" th:text="${game.remainingCards + ' cards'}">Deck</div>
+                </div>
+                <div class="food-area">
+                    <div id="food-tokens-area" class="food-tokens">
+                        <div th:each="i : ${#numbers.sequence(1, game.foodTokens)}" class="food-token"
+                            th:classappend="${i % 2 == 0 ? ' red' : ' blue'}"></div>
+                    </div>
                 </div>
             </div>
-            <div class="dice">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-            </div>
-        </div>
 
-        <!-- Правая колонка - карты текущего игрока -->
-        <div id="current-player-area" class="player-area current-player">
-            <div class="player-name" th:text="${player}">Player Name</div>
-            <div class="player-cards">
-                <div th:each="animal : ${currentPlayerAnimals}" class="card" th:attr="data-animal-id=${animal.id}" onclick="selectAnimal(this)">
-                    <div th:each="property : ${animal.properties}" class="card-property" th:title="${property.name}"></div>
+            <!-- Область для размещения карт на столе -->
+            <div class="table-area">
+                <div class="table-instructions">
+                    Выберите карту и нажмите "Разместить как животное" или "Разместить как свойство"
+                </div>
+                <div class="table-buttons">
+                    <button id="placeAsAnimalButton" class="action-button" onclick="placeCardAsAnimal()" disabled>
+                        Разместить как животное
+                    </button>
+                    <button id="placeAsPropertyButton" class="action-button" onclick="placeCardAsProperty()" disabled>
+                        Разместить как свойство
+                    </button>
                 </div>
             </div>
-            <div class="action-buttons">
-                <button class="action-button" id="startGameButton">Старт игры</button>
-                <button class="action-button" id="endPhaseButton">Завершить фазу</button>
+
+            <!-- Текущий игрок -->
+            <div id="current-player-area" class="player-area current-player">
+                <div class="player-name" th:text="${player}">Player Name</div>
+                <div class="player-cards">
+                    <!-- Выкладка животных текущего игрока -->
+                    <div th:each="animal : ${currentPlayerAnimals}" class="animal-card"
+                        th:attr="data-animal-id=${animal.id}" onclick="selectAnimal(this)">
+                        <div class="animal-info">
+                            <div class="food-count">Food: <span th:text="${animal.foodCount}">0</span></div>
+                            <div class="fat-reserve" th:if="${animal.hasUsedFatReserve}">Fat Reserve Used</div>
+                        </div>
+                        <div th:each="property : ${animal.properties}" class="card-property"
+                            th:title="${property.description}" th:text="${property.property}"></div>
+                    </div>
+                </div>
+                <div class="hand-cards">
+                    <!-- Выкладка карт в руке текущего игрока -->
+                    <div th:each="card : ${currentPlayerHand}" class="hand-card" th:attr="data-card-id=${card.id}"
+                        onclick="selectCard(this)">
+                        <div class="card-info">
+                            <div class="card-type" th:text="${card.type}">ANIMAL</div>
+                            <div class="card-property">Property: <span th:text="${card.property}"></span></div>
+                            <div class="card-description" th:if="${card.description != null}">
+                                <span th:text="${card.description}">Description</span>
+                            </div>
+                            <div class="card-points" th:if="${card.additionalPoints > 0}">
+                                Points: <span th:text="${card.additionalPoints}">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <!-- Остальные кнопки действий -->
+                    <button class="action-button" id="startGameButton" onclick="startGame()">Start Game</button>
+                    <button class="action-button" id="endPhaseButton" onclick="endPhase()">End Phase</button>
+                    <button class="action-button" id="addPropertyButton" onclick="addProperty()">Add Property</button>
+                    <button class="action-button" id="feedAnimalButton" onclick="feedAnimal()">Feed Animal</button>
+                    <button class="action-button" id="reproduceButton" onclick="reproduce()">Reproduce</button>
+                    <button class="action-button" id="attackButton" onclick="attack()">Attack</button>
+                    <button class="action-button" id="usePropertyButton" onclick="useProperty()">Use Property</button>
+                    <button class="action-button" id="passButton" onclick="pass()">Pass</button>
+                    <button class="action-button" id="stompFoodButton" onclick="stompFood()">Stomp Food</button>
+                    <button class="action-button" id="hibernateButton" onclick="hibernate()">Hibernate</button>
+                    <button class="action-button" id="useFatReserveButton" onclick="useFatReserve()">Use Fat
+                        Reserve</button>
+                    <button class="action-button" id="useMimicryButton" onclick="useMimicry()">Use Mimicry</button>
+                    <button class="action-button" id="useTailDropButton" onclick="useTailDrop()">Use Tail Drop</button>
+                    <button class="action-button" id="usePiracyButton" onclick="usePiracy()">Use Piracy</button>
+                    <button class="action-button" id="useSymbiosisButton" onclick="useSymbiosis()">Use
+                        Symbiosis</button>
+                    <button class="action-button" id="useCooperationButton" onclick="useCooperation()">Use
+                        Cooperation</button>
+                    <button class="action-button" id="useInteractionButton" onclick="useInteraction()">Use
+                        Interaction</button>
+                </div>
             </div>
         </div>
+        <img th:src="@{/images/lizard.svg}" alt="Lizard" class="lizard-icon" />
     </div>
 
-    <img src="/images/lizard.svg" alt="Lizard" class="lizard-icon">
-</div>
-
-<!-- Подключаем SockJS и STOMP -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-<script th:inline="javascript">
-    // Эти переменные должны быть подставлены сервером Thymeleaf.
-    const gameId = /*[[${gameId}]]*/ "";
-    const playerName = /*[[${player}]]*/ "";
-</script>
-<script>
-    let stompClient = null;
-
-    function connectWebSocket() {
-        const socket = new SockJS('/ws/game');
-        stompClient = Stomp.over(socket);
-        stompClient.connect({}, function (frame) {
-            console.log('Connected: ' + frame);
-            stompClient.subscribe('/topic/game/' + gameId, function (message) {
-                const game = JSON.parse(message.body);
-                updateUI(game);
-            });
-        });
-    }
-
-    function updateUI(game) {
-        document.getElementById('roundCounter').textContent = game.round;
-        document.getElementById('currentPhase').textContent = game.currentPhase;
-        document.getElementById('foodTokens').textContent = game.foodTokens;
-        document.getElementById('deck').textContent = game.remainingCards + ' карт';
-
-        // Обновляем блок фишек еды
-        const foodTokensArea = document.getElementById('food-tokens-area');
-        foodTokensArea.innerHTML = '';
-        for (let i = 1; i <= game.foodTokens; i++) {
-            const token = document.createElement('div');
-            token.className = 'food-token ' + (i % 2 === 0 ? 'red' : 'blue');
-            foodTokensArea.appendChild(token);
-        }
-
-        // Если нужно, можно обновить также область с картами оппонентов и текущего игрока.
-    }
-
-    function selectAnimal(cardElement) {
-        document.querySelectorAll('.card').forEach(card => card.classList.remove('selected'));
-        cardElement.classList.add('selected');
-    }
-
-    document.getElementById('startGameButton').addEventListener('click', function () {
-        fetch('/api/games/' + gameId + '/start', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        })
-            .then(response => response.json())
-            .then(data => console.log('Game started:', data))
-            .catch(error => console.error('Error:', error));
-    });
-
-    document.getElementById('endPhaseButton').addEventListener('click', function () {
-        fetch('/api/games/' + gameId + '/end-phase', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        })
-            .then(response => response.json())
-            .then(data => console.log('Phase ended:', data))
-            .catch(error => console.error('Error:', error));
-    });
-
-    function leaveGame() {
-        if (confirm('Вы уверены, что хотите покинуть игру?')) {
-            window.location.href = '/';
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        connectWebSocket();
-    });
-</script>
+    <!-- Подключаем SockJS и STOMP -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script th:inline="javascript">
+        // Переданные сервером Thymeleaf переменные
+        const gameId = /*[[${gameId}]]*/ "";
+        const playerName = /*[[${player}]]*/ "";
+        const csrfToken = document.querySelector("meta[name='_csrf']")?.content;
+        const csrfHeader = document.querySelector("meta[name='_csrf_header']")?.content;
+    </script>
+    <script th:src="@{/js/game.js}"></script>
 </body>
+
 </html>

@@ -37,17 +37,22 @@ public class Player {
     @BatchSize(size = 20)
     private List<Animal> animals = new ArrayList<>();
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "player_hand")
-    @JsonIgnore
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "player_hand", joinColumns = @JoinColumn(name = "player_id"), inverseJoinColumns = @JoinColumn(name = "card_id"))
     @Fetch(FetchMode.SUBSELECT)
     private List<Card> hand = new ArrayList<>();
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "player_discard")
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "player_discard", joinColumns = @JoinColumn(name = "player_id"), inverseJoinColumns = @JoinColumn(name = "card_id"))
     @JsonIgnore
     @Fetch(FetchMode.SUBSELECT)
     private List<Card> discard = new ArrayList<>();
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean hasPassedDevelopment = false;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean hasPassedFeeding = false;
 
     // Количество заработанных фишек еды (например, для подсчёта очков)
     private int foodTokens;
@@ -111,15 +116,10 @@ public class Player {
         return discard.size();
     }
 
-    // В конце раунда удаляем ненакормленных животных и начисляем фишки
-    public void processEndOfRound() {
-        animals.removeIf(animal -> !animal.isFed());
-        foodTokens += animals.size();
-        score += foodTokens; // Обновляем счет игрока
-    }
-
     public void addCard(Card card) {
-        hand.add(card);
+        if (!hand.contains(card)) {
+            hand.add(card);
+        }
     }
 
     public void removeCard(Card card) {
@@ -127,7 +127,65 @@ public class Player {
     }
 
     public void discardCard(Card card) {
-        hand.remove(card);
-        discard.add(card);
+        if (hand.remove(card)) {
+            discard.add(card);
+        }
+    }
+
+    public void passDevelopment() {
+        this.hasPassedDevelopment = true;
+    }
+
+    public void passFeeding() {
+        this.hasPassedFeeding = true;
+    }
+
+    public boolean hasPassedDevelopment() {
+        return hasPassedDevelopment;
+    }
+
+    public boolean hasPassedFeeding() {
+        return hasPassedFeeding;
+    }
+
+    public void resetPhaseState() {
+        this.hasPassedDevelopment = false;
+        this.hasPassedFeeding = false;
+        for (Animal animal : animals) {
+            animal.resetPhaseState();
+        }
+    }
+
+    public void processEndOfRound() {
+        // Remove unfed animals
+        animals.removeIf(animal -> !animal.isFed());
+
+        // Reset phase states
+        resetPhaseState();
+    }
+
+    public int calculateScore() {
+        int totalScore = 0;
+        for (Animal animal : animals) {
+            // Base points for surviving animals
+            totalScore += 2;
+
+            // Points for properties
+            totalScore += animal.getProperties().size();
+
+            // Additional points for special properties
+            for (Card property : animal.getProperties()) {
+                switch (property.getProperty()) {
+                    case PREDATOR:
+                    case BIG:
+                        totalScore += 1;
+                        break;
+                    case PARASITE:
+                        totalScore += 2;
+                        break;
+                }
+            }
+        }
+        return totalScore;
     }
 }

@@ -26,14 +26,14 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
-    //    @GetMapping({"/", "/login"})
-//    public String login(HttpSession session) {
-//        // Если пользователь уже авторизован, перенаправляем в кабинет.
-//        if (session.getAttribute("player") != null) {
-//            return "redirect:/cabinet";
-//        }
-//        return "login";  // Создайте шаблон login.html для страницы входа.
-//    }
+    // @GetMapping({"/", "/login"})
+    // public String login(HttpSession session) {
+    // // Если пользователь уже авторизован, перенаправляем в кабинет.
+    // if (session.getAttribute("player") != null) {
+    // return "redirect:/cabinet";
+    // }
+    // return "login"; // Создайте шаблон login.html для страницы входа.
+    // }
     @GetMapping("/signUp")
     public String signUpPage(HttpSession session) {
         // Если пользователь уже авторизован, перенаправляем в кабинет
@@ -45,10 +45,10 @@ public class AuthController {
 
     @PostMapping("/signIn")
     public String signIn(@RequestParam String login,
-                         @RequestParam String password,
-                         HttpSession session,
-                         HttpServletResponse response,
-                         Model model) {
+            @RequestParam String password,
+            HttpSession session,
+            HttpServletResponse response,
+            Model model) {
         login = login.toLowerCase();
         logger.info("Attempting sign in for user: {}", login);
 
@@ -62,13 +62,12 @@ public class AuthController {
             if (userService.isPasswordValid(login, password)) {
                 List authorityList = new ArrayList();
                 authorityList.add(new SimpleGrantedAuthority("ROLE_USER"));
-                // Создаем токен аутентификации с ролью ROLE_USER (при необходимости добавьте нужные роли)
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                login,
-                                null,
-                                authorityList
-                        );
+                // Создаем токен аутентификации с ролью ROLE_USER (при необходимости добавьте
+                // нужные роли)
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        login,
+                        null,
+                        authorityList);
                 // Устанавливаем аутентификацию в SecurityContext
                 SecurityContextHolder.getContext().setAuthentication(authToken);
                 // Также можно сохранить информацию в сессии, если требуется
@@ -91,10 +90,10 @@ public class AuthController {
 
     @PostMapping("/signUp")
     public String signUp(@RequestParam String login,
-                         @RequestParam String password,
-                         HttpSession session,
-                         HttpServletResponse response,
-                         Model model) {
+            @RequestParam String password,
+            HttpSession session,
+            HttpServletResponse response,
+            Model model) {
         login = login.toLowerCase();
         try {
             if (userService.userExists(login)) {

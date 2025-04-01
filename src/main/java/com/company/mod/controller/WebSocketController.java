@@ -16,7 +16,8 @@ public class WebSocketController {
     private GameService gameService;
 
     /**
-     * Метод отправляет текущее состояние игры всем подписчикам на тему /topic/game/{gameId}
+     * Метод отправляет текущее состояние игры всем подписчикам на тему
+     * /topic/game/{gameId}
      */
     public void broadcastGameState(String gameId) {
         Game game = gameService.getGameState(gameId);
